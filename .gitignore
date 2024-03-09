@@ -1,0 +1,10 @@
+# Ignore node_modules folder
+node_modules/
+
+# Ignore .git directory (if you want to exclude the Git history and settings of a nested Git repository)
+.git/
+
+# Ignore other files that should not be committed to the repository
+*.log
+.env
+.DS_Store
