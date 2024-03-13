@@ -1,22 +1,28 @@
 localStorage.clear();
 document.addEventListener("DOMContentLoaded", function() {
 	
+    // Getting the elements from html form
 	const form = document.getElementById("myForm");
 	const outputDiv = document.getElementById("output")
+    outputDiv.style.maxHeight = '400px';
+    outputDiv.style.overflowY = 'auto';
 
 	const clearInputBtn = document.getElementById("clear-input");
 	const clearOutputBtn = document.getElementById("clear-output");
     const getNomineesBtn = document.getElementById("get-nominees")
 	const getNominationsBtn = document.getElementById("get-nominations");
 
+    // Logic for Clear Input Button
 	clearInputBtn.addEventListener("click", function() {
 		form.reset();
 	})
 
+    // Logic for Clear Input Button
 	clearOutputBtn.addEventListener("click", function() {
 		outputDiv.innerHTML = "";
 	});
 
+    // EventListener for nominee and info value restriction 
     nominee.addEventListener('input', checkAndWarn);
     info.addEventListener('input', checkAndWarn);
     nomInfo.addEventListener('input', checkAndWarn);
@@ -28,11 +34,10 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-
+    // Logic for Clear getNomination button click
 	getNominationsBtn.addEventListener("click", function(event) {
         event.preventDefault();
 
-        // Construct the query URL with parameters from the form
         const year = document.getElementById('year').value;
         const category = document.getElementById('category').value;
         const nominee = document.getElementById('nominee').value;
@@ -40,6 +45,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const nomInfo = document.getElementById('nomInfo').value;
         const won = document.getElementById('won').value;
 
+        // Construct the query URL with parameters from the form
         const queryParams = new URLSearchParams({
             year,
             category,
@@ -90,6 +96,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
+    // Logic for Clear getNomination button click
     getNomineesBtn.addEventListener("click", function(event) {
         event.preventDefault();
         const year = document.getElementById('year').value;

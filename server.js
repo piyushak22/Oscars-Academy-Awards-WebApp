@@ -7,34 +7,29 @@ const app = express();
 app.use(express.static('public'));
 
 // Middleware to set CORS headers
-    app.use((req, res, next) => {
-        res.header('Access-Control-Allow-Origin', '*');
-        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-        next();
-    });
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    next();
+});
 
 app.get('/nominations', (req, res) => {
+
     let results = data;
 
-    console.log('Query Params:', req.query);
     try {
+        // Filtering based on 'year' query parameter
         if (req.query.year) {
             results = results.filter(item => item.Year.includes(req.query.year));
         }
-    
+
+        // Filtering based on 'category' query parameter
         if (req.query.category) {
             const categoryQuery = req.query.category.toLowerCase();
             results = results.filter(item => item.Category.toLowerCase().includes(categoryQuery));
         }
     
-
-        // Filtering based on Won status
-        if (req.query.won) {
-            const wonQuery = req.query.won.toLowerCase();
-            // Assuming the data has a 'Won' field that is either 'yes' or 'no'
-            results = results.filter(item => item.Won.toLowerCase() === wonQuery);
-        }
-
+        // Filtering based on 'nominee/info' query parameter
         if (req.query.nomInfo) {
             const nomInfoQueryLower = req.query.nomInfo.toLowerCase();
             results = results.filter(item => {
@@ -56,7 +51,16 @@ app.get('/nominations', (req, res) => {
                 });
             }
         }
+
+        // Filtering based on Won status if provided
+        if (req.query.won) {
+            const wonQuery = req.query.won.toLowerCase();
+            // Assuming the data has a 'Won' field that is either 'yes' or 'no'
+            results = results.filter(item => item.Won.toLowerCase() === wonQuery);
+        }
+
         res.json(results);
+
     } catch (error) {
         console.error('Error processing request:', error);
         res.status(500).send('Internal Server Error');
@@ -67,24 +71,25 @@ app.get('/nominees', (req, res) => {
     
     let filteredData = data;
 
-    if (req.query.year) {
-        filteredData = filteredData.filter(item => item.Year.includes(req.query.year));
-    }
-    
-    
-    if (req.query.category) {
-        const categoryQuery = req.query.category.toLowerCase().trim();
-        filteredData = filteredData.filter(item => item.Category.toLowerCase().includes(categoryQuery));
-    }
-    
-    
-        // Filter based on the 'nominee' query parameter if provided
+    try {
+        // Filtering based on 'year' query parameter
+        if (req.query.year) {
+            filteredData = filteredData.filter(item => item.Year.includes(req.query.year));
+        }
+        
+        // Filtering based on 'category' query parameter
+        if (req.query.category) {
+            const categoryQuery = req.query.category.toLowerCase().trim();
+            filteredData = filteredData.filter(item => item.Category.toLowerCase().includes(categoryQuery));
+        }
+        
+        // Filter based on the 'nominee' query parameter
         if (req.query.nominee) {
             const nomineeQuery = req.query.nominee.toLowerCase();
             filteredData = filteredData.filter(item => item.Nominee && item.Nominee.toLowerCase().includes(nomineeQuery));
         }
     
-        // Filter based on the 'info' query parameter if provided
+        // Filter based on the 'info' query parameter
         if (req.query.info) {
             const infoQuery = req.query.info.toLowerCase();
             filteredData = filteredData.filter(item => {
@@ -103,33 +108,37 @@ app.get('/nominees', (req, res) => {
                 (item.Info && typeof item.Info === 'string' && item.Info.toLowerCase().includes(nomInfoQuery))
             );
         }        
-
-    // Filter based on wonOption if provided
-    if (req.query.won && req.query.won !== "") {
-        const wonQuery = req.query.won.toLowerCase();
-        filteredData = filteredData.filter(item => item.Won && item.Won.toLowerCase() === wonQuery);
-        console.log(`Filtered data count after won filter: ${filteredData.length}`);
+    
+        // Filter based on wonOption if provided
+        if (req.query.won && req.query.won !== "") {
+            const wonQuery = req.query.won.toLowerCase();
+            filteredData = filteredData.filter(item => item.Won && item.Won.toLowerCase() === wonQuery);
+            console.log(`Filtered data count after won filter: ${filteredData.length}`);
+        }
+    
+        let nomineeCounts = {};
+    
+        // Count nominations for all nominees initially
+        filteredData.forEach(item => {
+            nomineeCounts[item.Nominee] = nomineeCounts[item.Nominee] + 1 || 1;
+        });
+    
+        // Sort nominees by count, descending order
+        let sortedNominees = Object.keys(nomineeCounts).map(nominee => {
+            return { nominee, count: nomineeCounts[nominee] };
+        }).sort((a, b) => b.count - a.count); 
+    
+        // If numberOfTimes is provided, filter the sortedNominees to provide records equal or greater than the number
+        if (req.query.numberOfTimes) {
+            const numberOfTimes = parseInt(req.query.numberOfTimes);
+            sortedNominees = sortedNominees.filter(nominee => nominee.count >= numberOfTimes);
+        }
+        res.json(sortedNominees)
+    
+    } catch (error) {
+        console.error('Error processing request:', error);
+        res.status(500).send('Internal Server Error');
     }
-
-    let nomineeCounts = {};
-
-    // Count nominations for all nominees initially
-    filteredData.forEach(item => {
-        nomineeCounts[item.Nominee] = nomineeCounts[item.Nominee] + 1 || 1;
-    });
-
-    let sortedNominees = Object.keys(nomineeCounts).map(nominee => {
-        return { nominee, count: nomineeCounts[nominee] };
-    }).sort((a, b) => b.count - a.count); // Sort nominees by count, descending
-
-    // If numberOfTimes is provided, filter the sortedNominees to match the count
-    if (req.query.numberOfTimes) {
-        const numberOfTimes = parseInt(req.query.numberOfTimes);
-        sortedNominees = sortedNominees.filter(nominee => nominee.count >= numberOfTimes);
-    }
-    console.log("Sorted Nominee length ****************************************", sortedNominees.length)
-    res.json(sortedNominees)
-
 }); 
 
 app.get('/', (req, res) => {
