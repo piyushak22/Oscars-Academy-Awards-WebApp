@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", function() {
             return response.json();
         })
         .then(data => {
-            // console.log("Data received in UI: ", data.length);
+            console.log("Data received in UI: ", data.length);
             outputDiv.innerHTML = "";  // Clear previous results
 
             const table = document.createElement("table");
